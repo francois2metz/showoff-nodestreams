@@ -3,8 +3,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>Node Streams</title>
+
+  <meta name="viewport" content="width=device-width"/>
 
   <link rel="stylesheet" href="./css/reset.css" type="text/css"/>
   <link rel="stylesheet" href="./css/showoff.css" type="text/css"/>
@@ -22,6 +24,7 @@
   <script type="text/javascript" src="./js/sh_main.min.js"></script>
   <script type="text/javascript" src="./js/core.js"></script>
   <script type="text/javascript" src="./js/showoffcore.js"></script>
+  <script type="text/javascript" src="./js/coffee-script.js"></script>
 
   <link type="text/css" href="./css/fg.menu.css" media="screen" rel="stylesheet" />
   <link type="text/css" href="./css/theme/ui.all.css" media="screen" rel="stylesheet" />
@@ -30,30 +33,38 @@
   
 
   
+    <script type="text/javascript" src="file/pipe.js"></script>
+  
+    <script type="text/javascript" src="file/server.js"></script>
+  
+    <script type="text/javascript" src="file/server2.js"></script>
+  
 
   <script type="text/javascript">
   $(function(){
-    setupPreso(false, './');
+      setupPreso(false, './');
   });
   </script>
+
 </head>
 
 <body>
-
 
 <a tabindex="0" href="#search-engines" class="fg-button fg-button-icon-right ui-widget ui-state-default ui-corner-all" id="navmenu"><span class="ui-icon ui-icon-triangle-1-s"></span>slides</a>
 <div id="navigation" class="hidden"></div>
 
 <div id="help">
   <table>
+    <tr><td class="key">z, ?</td><td>toggle help (this)</td></tr>
     <tr><td class="key">space, &rarr;</td><td>next slide</td></tr>
-    <tr><td class="key">&larr;</td><td>previous slide</td></tr>
-    <tr><td class="key">d</td><td>debug mode</td></tr>
+    <tr><td class="key">shift-space, &larr;</td><td>previous slide</td></tr>
+    <tr><td class="key">d</td><td>toggle debug mode</td></tr>
     <tr><td class="key">## &lt;ret&gt;</td><td>go to slide #</td></tr>
-    <tr><td class="key">c</td><td>table of contents (vi)</td></tr>
+    <tr><td class="key">c, t</td><td>table of contents (vi)</td></tr>
     <tr><td class="key">f</td><td>toggle footer</td></tr>
     <tr><td class="key">r</td><td>reload slides</td></tr>
-    <tr><td class="key">z</td><td>toggle help (this)</td></tr>
+    <tr><td class="key">n</td><td>toggle notes</td></tr>
+    <tr><td class="key">p</td><td>run preshow</td></tr>
   </table>
 </div>
 
@@ -75,56 +86,78 @@
 
 <h2>Fran&#xE7;ois de Metz</h2>
 
-<h2>af83</h2>
-</div>
+<h2>Stormz</h2></div>
 </div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/2">
-<h1>Pipes for Node.js</h1>
-</div>
-</div><div class="slide" data-transition="none"><div class="content bullets incremental" ref="one/01_slide/3">
-<h1>Readable Stream</h1>
-
-<ul>
-<li>'data'</li>
-<li>'end'</li>
-<li>'close'</li>
-</ul>
-
-</div>
+<h1>Readable Stream</h1></div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/3">
+<h1>Writable Stream</h1></div>
 </div><div class="slide" data-transition="none"><div class="content code small" ref="one/01_slide/4">
-<pre class="sh_javascript"><code>var Stream = require('stream').Stream
+<pre class="sh_javascript"><code>var http = require('http')
+
+http.get({host: 'localhost',
+          port: 9292}, function(res) {
+    res.on('data', function(data) {
+        process.stdout.write(data)
+    })
+})</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content code small" ref="one/01_slide/5">
+<pre class="sh_javascript"><code>var http = require('http')
+
+http.get({host: 'localhost',
+          port: 9292}, function(res) {
+    res.pipe(process.stdout)
+})</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content code small" ref="one/01_slide/6">
+<pre class="sh_javascript"><code>var http = require('http')
+var fs = require('fs')
+
+var file = fs.createWriteStream('/tmp/output')
+
+http.get({host: 'localhost',
+          port: 9292}, function(res) {
+    res.pipe(file)
+})</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content code small" ref="one/01_slide/7">
+<pre class="sh_javascript"><code>var net = require('net')
+var Stream = require('stream')
 
 var stream = new Stream()
-stream.on('data', function(data) {
-    console.log('Hey ! I got some new data: '+ data)
-})</code></pre>
-</div>
-</div><div class="slide" data-transition="none"><div class="content bullets incremental" ref="one/01_slide/5">
-<h1>Writable Stream</h1>
+setInterval(function() {
+    stream.emit('data', 'plop\n')
+}, 1000)</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content code small" ref="one/01_slide/8">
+<pre class="sh_javascript"><code>var server = net.createServer(function(c) {
+    console.log('accepted connection')
+    stream.pipe(c)
+})
 
-<ul>
-<li>write()</li>
-<li>end()</li>
-</ul>
+server.listen(9293, function() {
+    console.log('listen at localhost:9293')
+})</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content code small small" ref="one/01_slide/9">
+<pre class="sh_javascript"><code>var net = require('net')
+var util = require('util')
+var Stream = require('stream')
 
-</div>
-</div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/6">
-<pre class="sh_javascript"><code>source.pipe(dest)
-source.pipe(dest2)
-util.pump(source, dest)</code></pre>
-</div>
-</div><div class="slide" data-transition="none"><div class="content bullets incremental" ref="one/01_slide/7">
-<h1>Used in the standard library</h1>
-
-<ul>
-<li>fs</li>
-<li>socket</li>
-<li>http request and response</li>
-</ul>
-
-</div>
-</div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/8">
-<h1>Questions?</h1>
-</div>
+function Chat() {
+    Stream.call(this)
+    this.writable = this.readable = true
+}
+util.inherits(Chat, Stream)
+Chat.prototype.write = function(data) {
+    this.emit("data", data)
+    return true
+}
+var chat = new Chat()
+var server = net.createServer(function(c) {
+    chat.pipe(c)
+    c.pipe(chat)
+})
+server.listen(9293, function() {
+    console.log('listen at localhost:9293')
+})</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/10">
+<h1>Questions?</h1></div>
 </div></div>
 
 </body>
